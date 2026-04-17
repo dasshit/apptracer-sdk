@@ -25,7 +25,7 @@ export class AppTracerClass implements IAppTracer {
   private transport?: FetchTransport;
   private reportBuilder?: CrashReportBuilder;
 
-  private store: PendingReportsStore;
+  private store?: PendingReportsStore;
 
   private uninstallHandlers?: () => void;
 
@@ -34,13 +34,7 @@ export class AppTracerClass implements IAppTracer {
 
   private sessionId?: string;
 
-  constructor() {
-
-    this.store = new PendingReportsStore({
-      storageKey: "__apptracer_pending_reports__",
-      maxItems: 50,
-    });
-  }
+  constructor() {}
 
   /**
    * Инициализация SDK
@@ -80,13 +74,6 @@ export class AppTracerClass implements IAppTracer {
       deviceId: options.deviceId ?? "UNKNOWN",
     }));
 
-    this.transport = new FetchTransport({
-      baseUrl: options.endpointBaseUrl ?? SDK_API_BASE_URL,
-      logLevel: options.httpLogLevel ?? "error",
-      timeoutMs: 15000,
-      redactKeys: ["appToken", "crashToken", "deviceId", "authorization"],
-    });
-
     this.store = new PendingReportsStore({
       storageKey: options.persistKey ?? "__apptracer_pending_reports__",
       maxItems: options.persistMaxItems ?? 50,
@@ -124,7 +111,7 @@ export class AppTracerClass implements IAppTracer {
       createdAt: Date.now(),
       payload,
     };
-    await this.store.enqueue(item);
+    await this.store?.enqueue(item);
   }
 
   private captureGlobalError(error: TGlobalError) {
@@ -195,7 +182,7 @@ export class AppTracerClass implements IAppTracer {
    * Можно оптимизировать батчингом, если сервер поддерживает.
    */
   async drainPending() {
-    const items = await this.store.loadAll();
+    const items = (await this.store?.loadAll()) as PendingReport[];
     if (items.length === 0) return;
 
     const sentIds: string[] = [];
@@ -211,7 +198,7 @@ export class AppTracerClass implements IAppTracer {
       }
     }
 
-    await this.store.removeByIds(sentIds);
+    await this.store?.removeByIds(sentIds);
   }
 
   private normalizeUnknownToGlobalError(err: any, isFatal?: boolean): TGlobalError {
