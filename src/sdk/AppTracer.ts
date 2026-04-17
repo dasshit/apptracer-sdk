@@ -10,8 +10,25 @@ import { PendingReportsStore, type PendingReport } from "./persist/PendingReport
 import { AppTracerInitOptions, IAppTracer } from "./IAppTracer";
 import { createSessionId } from "./utils/session";
 
+/** Базовый URL для API сервера AppTracer */
 const SDK_API_BASE_URL = "https://sdk-api.apptracer.ru";
 
+/**
+ * Основной класс SDK для отслеживания ошибок в React Native приложениях.
+ *
+ * Перехватывает глобальные ошибки, необработанные Promise rejection,
+ * собирает логи (breadcrumbs) и отправляет отчёты на сервер.
+ *
+ * @example
+ * ```typescript
+ * AppTracer.init({
+ *   appToken: "YOUR_APP_TOKEN",
+ *   deviceId: "device-123",
+ *   versionCode: 1,
+ *   versionName: "1.0.0"
+ * });
+ * ```
+ */
 export class AppTracerClass implements IAppTracer {
   private appToken?: string;
 
@@ -32,8 +49,33 @@ export class AppTracerClass implements IAppTracer {
   constructor() {}
 
   /**
-   * Инициализация SDK
-   * @param options {AppTracerInitOptions} - параметры для инициализации SDK
+   * Инициализирует SDK. Должен быть вызван один раз при старте приложения.
+   *
+   * После инициализации SDK:
+   * - Устанавливает глобальные обработчики ошибок (ErrorUtils, unhandledrejection)
+   * - Пытается отправить накопленные ранее отчёты из хранилища
+   * - Начинает сбор логов (breadcrumbs)
+   *
+   * @param options - параметры конфигурации SDK
+   * @param options.appToken - токен приложения (обязательно)
+   * @param options.deviceId - уникальный идентификатор устройства
+   * @param options.versionCode - числовой код версии приложения
+   * @param options.versionName - строковая версия приложения (например, "1.0.0")
+   * @param options.endpointBaseUrl - URL сервера (по умолчанию https://sdk-api.apptracer.ru)
+   * @param options.maxLogs - максимальное количество логов в буфере (по умолчанию 100)
+   * @param options.maxLogBytes - максимальный размер файла логов в байтах (по умолчанию 64KB)
+   * @param options.persistNonFatal - сохранять non-fatal ошибки при неудачной отправке (по умолчанию false)
+   *
+   * @example
+   * ```typescript
+   * AppTracer.init({
+   *   appToken: "abc123",
+   *   deviceId: "device-456",
+   *   versionCode: 1,
+   *   versionName: "1.0.0",
+   *   maxLogs: 200,
+   * });
+   * ```
    */
   init(options: AppTracerInitOptions) {
     this.appToken = options.appToken;
@@ -87,21 +129,81 @@ export class AppTracerClass implements IAppTracer {
     void this.drainPending();
   }
 
+  /**
+   * Отключает SDK и удаляет все глобальные обработчики ошибок.
+   *
+   * После вызова этого метода SDK перестанет перехватывать ошибки.
+   * Может быть использован для корректного завершения работы приложения.
+   *
+   * @example
+   * ```typescript
+   * AppTracer.shutdown();
+   * ```
+   */
   shutdown() {
     this.uninstallHandlers?.();
     this.uninstallHandlers = undefined;
   }
 
+  /**
+   * Добавляет запись лога (breadcrumb) в кольцевой буфер.
+   *
+   * Логи сохраняются и прикрепляются к отчёту об ошибке при её возникновении.
+   * Максимальное количество логов определяется параметром `maxLogs` в init().
+   * При превышении лимита старые логи удаляются.
+   *
+   * @param row - объект с данными лога
+   * @param row.level - уровень логирования (severity и text)
+   * @param row.timestamp - время создания лога в миллисекундах
+   * @param row.msg - текст сообщения лога
+   *
+   * @example
+   * ```typescript
+   * AppTracer.addLog({
+   *   level: { severity: 1, text: "INFO" },
+   *   timestamp: Date.now(),
+   *   msg: "User clicked button"
+   * });
+   * ```
+   */
   addLog(row: TLogRow) {
     const logSeq = this.logBuffer?.nextSeq() as number;
     this.logBuffer?.push({ ...row, logSeq });
   }
 
+  /**
+   * Ручная отправка исключения/ошибки.
+   *
+   * Используйте этот метод для отправки ошибок, перехваченных в try/catch блоках
+   * или других ситуациях, где нужна ручная обработка.
+   *
+   * @param err - ошибка для отправки (Error, unknown или любой объект)
+   * @param isFatal - пометить ошибку как фатальную (по умолчанию false)
+   *
+   * @example
+   * ```typescript
+   * try {
+   *   riskyOperation();
+   * } catch (error) {
+   *   AppTracer.captureException(error);
+   * }
+   * ```
+   *
+   * @example
+   * ```typescript
+   * // Пометить как фатальную
+   * AppTracer.captureException(new Error("Critical failure"), true);
+   * ```
+   */
   public captureException(err: unknown, isFatal = false) {
     const normalized = this.normalizeUnknownToGlobalError(err, isFatal);
     this.captureGlobalError(normalized);
   }
 
+  /**
+   * Сохраняет payload в персистентное хранилище для последующей отправки.
+   * @internal
+   */
   private async persistPayload(payload: unknown) {
     const item: PendingReport = {
       id: this.newId(),
@@ -111,6 +213,13 @@ export class AppTracerClass implements IAppTracer {
     await this.store?.enqueue(item);
   }
 
+  /**
+   * Обрабатывает и отправляет глобальную ошибку.
+   *
+   * Для фатальных ошибок сначала сохраняет в хранилище, затем пытается отправить.
+   * Для non-fatal ошибок сохраняет только при включённом persistNonFatal и неудачной отправке.
+   * @internal
+   */
   private captureGlobalError(error: TGlobalError) {
     if (this.isReporting) return;
 
@@ -154,6 +263,11 @@ export class AppTracerClass implements IAppTracer {
     });
   }
 
+  /**
+   * Строит payload для отправки из списка ошибок.
+   * Включает snapshot логов в формате Base64.
+   * @internal
+   */
   private buildPayload(errors: TGlobalError[]): TErrorReport[] {
     const logsSnapshot = this.logBuffer?.snapshot() as TLogBufferRow[];
     const logsFileBase64 = this.logSerializer?.serializeToBase64(logsSnapshot) as string;
@@ -161,6 +275,10 @@ export class AppTracerClass implements IAppTracer {
     return errors.map((e) => this.reportBuilder?.buildReport(e, logsFileBase64)) as TErrorReport[];
   }
 
+  /**
+   * Отправляет payload на сервер через HTTP транспорт.
+   * @internal
+   */
   private async sendPayload(payload: TErrorReport[]) {
     await this.transport?.postJson("/api/crash/uploadBatch", payload, {
       query: {
@@ -174,9 +292,20 @@ export class AppTracerClass implements IAppTracer {
   }
 
   /**
-   * Отправляет всё, что накопилось в storage.
-   * Стратегия: читаем список → пытаемся отправить по одному → удаляем успешно отправленные.
-   * Можно оптимизировать батчингом, если сервер поддерживает.
+   * Отправляет все накопленные отчёты из персистентного хранилища.
+   *
+   * Автоматически вызывается при инициализации SDK.
+   * Может быть вызван вручную для принудительной отправки.
+   *
+   * Стратегия: читает список из хранилища → отправляет по одному →
+   * удаляет успешно отправленные.
+   *
+   * @returns Promise, который разрешается после завершения отправки
+   *
+   * @example
+   * ```typescript
+   * await AppTracer.drainPending();
+   * ```
    */
   async drainPending() {
     const items = (await this.store?.loadAll()) as PendingReport[];
@@ -198,6 +327,15 @@ export class AppTracerClass implements IAppTracer {
     await this.store?.removeByIds(sentIds);
   }
 
+  /**
+   * Нормализует неизвестную ошибку к формату TGlobalError.
+   *
+   * Обрабатывает:
+   * - Error объекты
+   * - Promise rejection events
+   * - Произвольные объекты
+   * @internal
+   */
   private normalizeUnknownToGlobalError(err: any, isFatal?: boolean): TGlobalError {
     const e = err?.reason ?? err;
     return {
@@ -208,15 +346,39 @@ export class AppTracerClass implements IAppTracer {
     };
   }
 
+  /**
+   * Генерирует уникальный идентификатор.
+   * @internal
+   */
   private newId() {
     // без зависимостей: достаточно для очереди
     return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
   }
 }
 
-// singleton
-// AppTracer.ts (внизу)
 const g = globalThis as any;
 
+/**
+ * Глобальный singleton экземпляр AppTracer SDK.
+ *
+ * Используйте этот объект для взаимодействия с SDK:
+ * - `AppTracer.init()` - инициализация
+ * - `AppTracer.captureException()` - ручная отправка ошибок
+ * - `AppTracer.addLog()` - добавление логов
+ * - `AppTracer.drainPending()` - отправка накопленных отчётов
+ * - `AppTracer.shutdown()` - отключение SDK
+ *
+ * @example
+ * ```typescript
+ * import AppTracer from "@ddastter/apptracer-sdk";
+ *
+ * AppTracer.init({
+ *   appToken: "YOUR_TOKEN",
+ *   deviceId: "device-123",
+ *   versionCode: 1,
+ *   versionName: "1.0.0"
+ * });
+ * ```
+ */
 export const AppTracer: IAppTracer =
   g.__app_tracer_reporter ?? (g.__app_tracer_reporter = new AppTracerClass());
