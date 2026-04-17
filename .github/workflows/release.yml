@@ -26,12 +26,15 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 20.17
           cache: pnpm
           registry-url: https://registry.npmjs.org
 
       - name: Install deps
         run: pnpm install --frozen-lockfile
+
+      - name: Unit tests
+        run: pnpm run test:ci
 
       - name: Build
         run: pnpm run build
