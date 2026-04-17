@@ -20,9 +20,9 @@ const SDK_API_BASE_URL = "https://sdk-api.apptracer.ru";
 export class AppTracerClass implements IAppTracer {
   private appToken?: string;
 
-  private readonly logBuffer: RingLogBuffer<TLogBufferRow>;
-  private readonly logSerializer: LogSerializer;
-  private transport: FetchTransport;
+  private logBuffer?: RingLogBuffer<TLogBufferRow>;
+  private logSerializer?: LogSerializer;
+  private transport?: FetchTransport;
   private reportBuilder?: CrashReportBuilder;
 
   private store: PendingReportsStore;
@@ -34,10 +34,27 @@ export class AppTracerClass implements IAppTracer {
 
   private sessionId?: string;
 
-  constructor(opts?: { maxLogs?: number; maxLogBytes?: number; maxLineBytes?: number }) {
-    const maxLogs = opts?.maxLogs ?? 100;
-    const maxLogBytes = opts?.maxLogBytes ?? 64 * 1024;
-    const maxLineBytes = opts?.maxLineBytes ?? 2048;
+  constructor() {
+
+    this.store = new PendingReportsStore({
+      storageKey: "__apptracer_pending_reports__",
+      maxItems: 50,
+    });
+  }
+
+  /**
+   * Инициализация SDK
+   * @param options {AppTracerInitOptions} - параметры для инициализации SDK
+   */
+  init(options: AppTracerInitOptions) {
+    this.appToken = options.appToken;
+    this.sessionId = createSessionId()
+
+    this.persistNonFatal = options.persistNonFatal ?? false;
+
+    const maxLogs = options?.maxLogs ?? 100;
+    const maxLogBytes = options?.maxLogBytes ?? 64 * 1024;
+    const maxLineBytes = options?.maxLineBytes ?? 2048;
 
     this.logBuffer = new RingLogBuffer<TLogBufferRow>(maxLogs);
     this.logSerializer = new LogSerializer({
@@ -47,22 +64,10 @@ export class AppTracerClass implements IAppTracer {
 
     this.transport = new FetchTransport({
       baseUrl: SDK_API_BASE_URL,
-      logLevel: "error",
+      logLevel: options.httpLogLevel ?? "error",
       timeoutMs: 15000,
       redactKeys: ["appToken", "crashToken", "deviceId", "authorization"],
     });
-
-    this.store = new PendingReportsStore({
-      storageKey: "__apptracer_pending_reports__",
-      maxItems: 50,
-    });
-  }
-
-  init(options: AppTracerInitOptions) {
-    this.appToken = options.appToken;
-    this.sessionId = createSessionId()
-
-    this.persistNonFatal = options.persistNonFatal ?? false;
 
     this.reportBuilder = new CrashReportBuilder((): TUploadBean => ({
       id: createSessionId(),
@@ -104,8 +109,8 @@ export class AppTracerClass implements IAppTracer {
   }
 
   addLog(row: TLogRow) {
-    const logSeq = this.logBuffer.nextSeq();
-    this.logBuffer.push({ ...row, logSeq });
+    const logSeq = this.logBuffer?.nextSeq() as number;
+    this.logBuffer?.push({ ...row, logSeq });
   }
 
   public captureException(err: unknown, isFatal = false) {
@@ -166,14 +171,14 @@ export class AppTracerClass implements IAppTracer {
   }
 
   private buildPayload(errors: TGlobalError[]): TErrorReport[] {
-    const logsSnapshot = this.logBuffer.snapshot();
-    const logsFileBase64 = this.logSerializer.serializeToBase64(logsSnapshot);
+    const logsSnapshot = this.logBuffer?.snapshot() as TLogBufferRow[];
+    const logsFileBase64 = this.logSerializer?.serializeToBase64(logsSnapshot) as string;
 
     return errors.map((e) => this.reportBuilder?.buildReport(e, logsFileBase64)) as TErrorReport[];
   }
 
   private async sendPayload(payload: TErrorReport[]) {
-    await this.transport.postJson("/api/crash/uploadBatch", payload, {
+    await this.transport?.postJson("/api/crash/uploadBatch", payload, {
       query: {
         appToken: this.appToken ?? "unknown",
         crashToken: this.appToken ?? "unknown",
