@@ -17,6 +17,9 @@ importers:
       react-native:
         specifier: '>=0.70'
         version: 0.85.1(@babel/core@7.29.0)(react@19.2.5)
+      react-native-promise-rejection-utils:
+        specifier: ^0.0.1
+        version: 0.0.1(react-native@0.85.1(@babel/core@7.29.0)(react@19.2.5))(react@19.2.5)
     devDependencies:
       '@changesets/cli':
         specifier: ^2.30.0
@@ -2476,6 +2479,12 @@ packages:
 
   react-native-logs@5.6.0:
     resolution: {integrity: sha512-+5A/AlepSGvaT2RE8YpoLOUNxfra8WBqUOM/GBjggCnfH5+RaCDThpKL6QnengAf+Limmoidm9YXPFzQ9cj3bQ==}
+
+  react-native-promise-rejection-utils@0.0.1:
+    resolution: {integrity: sha512-ToQv5u8zzYf+c1TTBD18UwDozSWGkekSPJ44xovsWZMF5I21DzEbO3P9UStjMWiFuI24CZiRbOoZHlvgjMtP+A==}
+    peerDependencies:
+      react: '*'
+      react-native: '*'
 
   react-native@0.85.1:
     resolution: {integrity: sha512-1K2TIvu2M1C8gqkPevi/MuLan16mQvEdURiTlwHgrb6S2vvkDyik6TrkkXMlMMhz9hF5RT8wFyDUdlpGFlkpXg==}
@@ -5703,6 +5712,11 @@ snapshots:
   react-is@18.3.1: {}
 
   react-native-logs@5.6.0: {}
+
+  react-native-promise-rejection-utils@0.0.1(react-native@0.85.1(@babel/core@7.29.0)(react@19.2.5))(react@19.2.5):
+    dependencies:
+      react: 19.2.5
+      react-native: 0.85.1(@babel/core@7.29.0)(react@19.2.5)
 
   react-native@0.85.1(@babel/core@7.29.0)(react@19.2.5):
     dependencies:

@@ -1,3 +1,9 @@
+import retryTimes = jest.retryTimes;
+import {
+  getUnhandledPromiseRejectionTracker,
+  setUnhandledPromiseRejectionTracker
+} from "react-native-promise-rejection-utils";
+
 /**
  * Функция для отправки отчёта об ошибке.
  *
@@ -72,18 +78,19 @@ export function installGlobalHandlers(report: ReportFn): () => void {
   }
 
   // unhandled promise rejections
-  if (typeof anyGlobal?.addEventListener === "function") {
-    const handler = (event: any) => {
-      try {
-        report(event, false);
-      } catch {
-        // ignore
-      }
-    };
 
-    anyGlobal.addEventListener("unhandledrejection", handler);
-    uninstalls.push(() => anyGlobal.removeEventListener?.("unhandledrejection", handler));
-  }
+  const prevTracker = getUnhandledPromiseRejectionTracker()
+
+  setUnhandledPromiseRejectionTracker((id, error) => {
+    try {
+      report(error)
+    } finally {
+      if (prevTracker !== undefined) {
+        prevTracker(id, error)
+      }
+    }
+  })
+
 
   /**
    * Удаляет все установленные обработчики и восстанавливает оригинальные.
