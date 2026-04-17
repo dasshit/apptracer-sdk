@@ -39,5 +39,5 @@ export default [
   {
     ignores: ["dist/**"],
   },
-    prettier,
+  prettier,
 ];
