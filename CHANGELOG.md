@@ -1,5 +1,12 @@
 # @ddastter/apptracer-sdk
 
+## 0.1.11
+
+### Patch Changes
+
+- 265de9f: Added JSDoc to all modules/functions
+- 0ca4c19: Added JSDoc to all modules/functions
+
 ## 0.1.10
 
 ### Patch Changes
