@@ -1,5 +1,12 @@
 # @ddastter/apptracer-sdk
 
+## 0.1.12
+
+### Patch Changes
+
+- b446b1c: Added README.md
+- 58099f6: Added README.md
+
 ## 0.1.11
 
 ### Patch Changes
