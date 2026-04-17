@@ -30,13 +30,20 @@
   "sideEffects": false,
   "scripts": {
     "build": "tsup",
-    "prepublishOnly": "pnpm run build"
+    "prepublishOnly": "pnpm run build",
+    "changeset": "changeset",
+    "version-packages": "changeset version",
+    "release": "changeset publish"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "peerDependencies": {
     "react": ">=18",
     "react-native": ">=0.70"
   },
   "devDependencies": {
+    "@changesets/cli": "^2.30.0",
     "react-native-logs": "^5.6.0",
     "tsup": "^8.5.1",
     "typescript": "^6.0.3"
