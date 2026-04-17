@@ -127,6 +127,7 @@ export type TUploadBean = {
 
   /** Идентификатор устройства из init(). */
   deviceId: string;
+  environment?: string;
 };
 
 /**

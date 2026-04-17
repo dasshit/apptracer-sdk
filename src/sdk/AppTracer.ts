@@ -110,6 +110,7 @@ export class AppTracerClass implements IAppTracer {
         osVersion: String(Platform.Version),
         sessionId: this.sessionId as string,
         deviceId: options.deviceId ?? "UNKNOWN",
+        environment: options.environment ?? "prod",
       }),
     );
 

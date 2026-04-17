@@ -87,6 +87,7 @@ export type AppTracerInitOptions = TAppTracerInitOptions & {
    * @default "UNKNOWN"
    */
   deviceId?: string;
+  environment?: string;
 };
 
 /**
