@@ -1,6 +1,6 @@
 {
   "name": "@ddastter/apptracer-sdk",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "AppTracer SDK for React Native / Expo",
   "license": "MIT",
   "repository": {
