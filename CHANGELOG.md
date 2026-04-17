@@ -1,5 +1,11 @@
 # @ddastter/apptracer-sdk
 
+## 0.1.13
+
+### Patch Changes
+
+- 0c4ef24: Added environment param for AppTracer.init({...})
+
 ## 0.1.12
 
 ### Patch Changes
