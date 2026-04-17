@@ -1,5 +1,11 @@
 # @ddastter/apptracer-sdk
 
+## 0.1.15
+
+### Patch Changes
+
+- a4e474b: Changed way to set global handler for Unhandled Promise
+
 ## 0.1.14
 
 ### Patch Changes
