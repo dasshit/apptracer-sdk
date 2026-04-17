@@ -1,5 +1,11 @@
 # @ddastter/apptracer-sdk
 
+## 0.1.10
+
+### Patch Changes
+
+- 1f48def: Added prettier and eslint
+
 ## 0.1.9
 
 ### Patch Changes
