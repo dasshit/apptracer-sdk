@@ -1,0 +1,47 @@
+{
+  "name": "@ddastter/apptracer-sdk",
+  "version": "0.1.0",
+  "description": "AppTracer SDK for React Native / Expo",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/dasshit/react-native-apptracer-sdk.git"
+  },
+  "main": "dist/index.cjs",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.cjs",
+      "import": "./dist/index.js"
+    },
+    "./react-native-logs": {
+      "types": "./dist/integrations/react-native-logs.d.ts",
+      "require": "./dist/integrations/react-native-logs.cjs",
+      "import": "./dist/integrations/react-native-logs.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "build": "tsup",
+    "prepublishOnly": "pnpm run build"
+  },
+  "peerDependencies": {
+    "react": ">=18",
+    "react-native": ">=0.70"
+  },
+  "devDependencies": {
+    "react-native-logs": "^5.6.0",
+    "tsup": "^8.5.1",
+    "typescript": "^6.0.3"
+  },
+  "dependencies": {
+    "@react-native-async-storage/async-storage": "^3.0.2"
+  }
+}
