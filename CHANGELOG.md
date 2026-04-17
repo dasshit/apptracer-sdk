@@ -1,5 +1,12 @@
 # @ddastter/apptracer-sdk
 
+## 0.1.14
+
+### Patch Changes
+
+- 11c47d9: Added screen resolution to UploadBean
+- ab299fd: Added screen resolution to UploadBean
+
 ## 0.1.13
 
 ### Patch Changes
