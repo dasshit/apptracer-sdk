@@ -1,4 +1,4 @@
-import type {TErrorReport, TGlobalError, TUploadBean} from "../types";
+import type { TErrorReport, TGlobalError, TUploadBean } from "../types";
 
 /**
  * Строитель отчётов об ошибках.
