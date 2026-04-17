@@ -1,7 +1,7 @@
 import { defineConfig } from "tsup";
 
 export default defineConfig({
-  entry: ["src/sdk/index.ts", "src/integrations/react-native-logs.ts"],
+  entry: ["src/index.ts", "src/integrations/react-native-logs.ts"],
   format: ["esm", "cjs"],
   dts: true,
   sourcemap: true,
