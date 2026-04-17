@@ -1,5 +1,5 @@
 import type { transportFunctionType } from "react-native-logs";
-import { AppTracer  } from "../sdk/AppTracer"; // или IAppTracer
+import { AppTracer } from "../sdk/AppTracer"; // или IAppTracer
 
 export type AppTracerTransportOptions = {
   errorLevel?: string;

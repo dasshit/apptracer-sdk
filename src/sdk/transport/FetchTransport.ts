@@ -17,7 +17,7 @@ export class FetchTransport {
       timeoutMs: number;
       logLevel: HttpLogLevel;
       redactKeys?: string[];
-    }
+    },
   ) {}
 
   async postJson(path: string, body: unknown, opts?: PostJsonOptions): Promise<Response> {
@@ -60,8 +60,7 @@ export class FetchTransport {
 
       const elapsedMs = Date.now() - startedAt;
 
-      const needBody =
-        !res.ok || (this.shouldLog("debug") && Boolean(opts?.logResponseBody));
+      const needBody = !res.ok || (this.shouldLog("debug") && Boolean(opts?.logResponseBody));
 
       let responseText: string | undefined;
       if (needBody) responseText = await res.text().catch(() => undefined);

@@ -18,5 +18,5 @@ AppTracer.init({
   deviceId: "YOUR_DEVICE_ID",
   versionCode: "APP_VERSION",
   versionName: "APP_VERSION",
-})
+});
 ```

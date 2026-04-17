@@ -1,9 +1,9 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export type PendingReport = {
-  id: string;          // уникальный id
-  createdAt: number;   // ms
-  payload: unknown;    // то, что отправляем на сервер (например TErrorReport[])
+  id: string; // уникальный id
+  createdAt: number; // ms
+  payload: unknown; // то, что отправляем на сервер (например TErrorReport[])
 };
 
 export class PendingReportsStore {
@@ -11,7 +11,7 @@ export class PendingReportsStore {
     private cfg: {
       storageKey: string;
       maxItems: number;
-    }
+    },
   ) {}
 
   async loadAll(): Promise<PendingReport[]> {

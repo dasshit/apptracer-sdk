@@ -44,7 +44,9 @@ export function installGlobalHandlers(report: ReportFn): () => void {
     for (const u of uninstalls.reverse()) {
       try {
         u();
-      } catch {}
+      } catch (e) {
+        console.log("Uninstall AppTracer global handler", { error: e });
+      }
     }
   };
 }

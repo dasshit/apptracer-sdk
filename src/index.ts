@@ -1,3 +1,3 @@
-import AppTracer from "./sdk"
+import AppTracer from "./sdk";
 
 export default AppTracer;

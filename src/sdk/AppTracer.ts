@@ -1,10 +1,5 @@
 import { Platform } from "react-native";
-import type {
-  TErrorReport,
-  TGlobalError,
-  TLogBufferRow,
-  TLogRow, TUploadBean,
-} from "./types";
+import type { TErrorReport, TGlobalError, TLogBufferRow, TLogRow, TUploadBean } from "./types";
 
 import { installGlobalHandlers } from "./global/GlobalHandlers";
 import { RingLogBuffer } from "./logs/RingLogBuffer";
@@ -42,7 +37,7 @@ export class AppTracerClass implements IAppTracer {
    */
   init(options: AppTracerInitOptions) {
     this.appToken = options.appToken;
-    this.sessionId = createSessionId()
+    this.sessionId = createSessionId();
 
     this.persistNonFatal = options.persistNonFatal ?? false;
 
@@ -57,22 +52,24 @@ export class AppTracerClass implements IAppTracer {
     });
 
     this.transport = new FetchTransport({
-      baseUrl: SDK_API_BASE_URL,
+      baseUrl: options.endpointBaseUrl ?? SDK_API_BASE_URL,
       logLevel: options.httpLogLevel ?? "error",
       timeoutMs: 15000,
       redactKeys: ["appToken", "crashToken", "deviceId", "authorization"],
     });
 
-    this.reportBuilder = new CrashReportBuilder((): TUploadBean => ({
-      id: createSessionId(),
-      count: 1,
-      versionCode: options.versionCode ?? 0,
-      versionName: options.versionName ?? "0.0.0",
-      vendor: Platform.OS,
-      osVersion: String(Platform.Version),
-      sessionId: this.sessionId as string,
-      deviceId: options.deviceId ?? "UNKNOWN",
-    }));
+    this.reportBuilder = new CrashReportBuilder(
+      (): TUploadBean => ({
+        id: createSessionId(),
+        count: 1,
+        versionCode: options.versionCode ?? 0,
+        versionName: options.versionName ?? "0.0.0",
+        vendor: Platform.OS,
+        osVersion: String(Platform.Version),
+        sessionId: this.sessionId as string,
+        deviceId: options.deviceId ?? "UNKNOWN",
+      }),
+    );
 
     this.store = new PendingReportsStore({
       storageKey: options.persistKey ?? "__apptracer_pending_reports__",
@@ -139,7 +136,7 @@ export class AppTracerClass implements IAppTracer {
         // - либо не удалять (будет дубль),
         // - либо сохранять с id и удалять по id.
         // Сделаем правильно: сохраняем с id и удаляем по id (см. ниже улучшение).
-      } catch (e) {
+      } catch {
         // если non-fatal и включено persistNonFatal — сохраняем при неудаче
         try {
           if (!error.isFatal && this.persistNonFatal) {

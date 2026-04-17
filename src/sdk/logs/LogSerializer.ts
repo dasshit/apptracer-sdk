@@ -9,7 +9,7 @@ export class LogSerializer {
       maxTotalBytes: number; // общий лимит файла логов
       maxLineBytes: number; // лимит одной строки (в байтах)
       maxHeaderBytes?: number; // default 64
-    }
+    },
   ) {}
 
   serializeToBase64(rows: LogRowLike[]): string {
@@ -25,7 +25,13 @@ export class LogSerializer {
     let total = 0;
 
     for (const r of rows) {
-      const line = this.newLogLine(r.logSeq, r.timestamp, r.msg, this.opts.maxLineBytes, maxHeaderBytes);
+      const line = this.newLogLine(
+        r.logSeq,
+        r.timestamp,
+        r.msg,
+        this.opts.maxLineBytes,
+        maxHeaderBytes,
+      );
 
       if (line.length === 0) continue;
 
@@ -52,7 +58,7 @@ export class LogSerializer {
     tsMs: number,
     message: string,
     limit?: number | null,
-    maxHeaderBytes = 64
+    maxHeaderBytes = 64,
   ): Uint8Array {
     let msgBytes = this.encoder.encode(message);
 
