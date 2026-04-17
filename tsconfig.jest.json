@@ -1,0 +1,10 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "types": ["node", "jest"],
+    "lib": ["ES2019", "DOM"],
+    "moduleResolution": "NodeNext",
+    "esModuleInterop": true,
+  },
+  "include": ["src/**/*.ts", "jest.setup.ts"]
+}
