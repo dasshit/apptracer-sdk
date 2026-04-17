@@ -1,5 +1,50 @@
+/**
+ * Функция для отправки отчёта об ошибке.
+ *
+ * Вызывается при перехвате глобальной ошибки или unhandled rejection.
+ *
+ * @param error - перехваченная ошибка (Error, PromiseRejectionEvent или unknown)
+ * @param isFatal - является ли ошибка фатальной (приводит к крашу приложения)
+ */
 type ReportFn = (error: unknown, isFatal?: boolean) => void;
 
+/**
+ * Устанавливает глобальные обработчики ошибок.
+ *
+ * Перехватывает:
+ * - JavaScript ошибки через React Native ErrorUtils
+ * - Unhandled Promise Rejections через DOM API
+ *
+ * Все перехваченные ошибки передаются в функцию `report` для обработки.
+ * Оригинальные обработчики сохраняются и вызываются после отчёта.
+ *
+ * @param report - функция для отправки отчёта об ошибке
+ * @returns Функция для удаления всех установленных обработчиков
+ *
+ * @example
+ * ```typescript
+ * const uninstall = installGlobalHandlers((error, isFatal) => {
+ *   console.log("Caught error:", error);
+ *   console.log("Is fatal:", isFatal);
+ * });
+ *
+ * // Позже, при завершении работы
+ * uninstall();
+ * ```
+ *
+ * @example
+ * ```typescript
+ * // Интеграция с AppTracer
+ * const uninstall = installGlobalHandlers((error, isFatal) => {
+ *   const normalized = normalizeError(error, isFatal);
+ *   captureGlobalError(normalized);
+ * });
+ *
+ * AppTracer.shutdown = () => {
+ *   uninstall();
+ * };
+ * ```
+ */
 export function installGlobalHandlers(report: ReportFn): () => void {
   const anyGlobal = globalThis as any;
 
@@ -40,6 +85,14 @@ export function installGlobalHandlers(report: ReportFn): () => void {
     uninstalls.push(() => anyGlobal.removeEventListener?.("unhandledrejection", handler));
   }
 
+  /**
+   * Удаляет все установленные обработчики и восстанавливает оригинальные.
+   *
+   * Вызывается при shutdown SDK или при необходимости временно отключить
+   * перехват ошибок.
+   *
+   * @internal
+   */
   return () => {
     for (const u of uninstalls.reverse()) {
       try {
