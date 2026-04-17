@@ -1,11 +1,11 @@
 {
   "name": "@ddastter/apptracer-sdk",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "AppTracer SDK for React Native / Expo",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/dasshit/react-native-apptracer-sdk.git"
+    "url": "https://github.com/dasshit/apptracer-sdk.git"
   },
   "main": "dist/index.cjs",
   "module": "dist/index.js",
