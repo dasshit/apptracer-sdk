@@ -113,7 +113,7 @@ export type TUploadBean = {
    * @example "ios"
    * @example "android"
    */
-  vendor: string;
+  osFamily: string;
 
   /**
    * Версия операционной системы.
@@ -122,12 +122,18 @@ export type TUploadBean = {
    */
   osVersion: string;
 
+  osArchitecture: string;
+
+  screenWidth: number;
+  screenHeight: number;
+
   /** Уникальный идентификатор сессии. Генерируется при каждом init(). */
   sessionId: string;
 
   /** Идентификатор устройства из init(). */
   deviceId: string;
   environment?: string;
+  tracerSdkVersion: string;
 };
 
 /**

@@ -9,6 +9,8 @@ import { CrashReportBuilder } from "./report/CrashReportBuilder";
 import { PendingReportsStore, type PendingReport } from "./persist/PendingReportsStore";
 import { AppTracerInitOptions, IAppTracer } from "./IAppTracer";
 import { createSessionId } from "./utils/session";
+import { getScreenResolution } from "./utils/screenResolution";
+import { SDK_VERSION } from "./version";
 
 /** Базовый URL для API сервера AppTracer */
 const SDK_API_BASE_URL = "https://sdk-api.apptracer.ru";
@@ -106,11 +108,14 @@ export class AppTracerClass implements IAppTracer {
         count: 1,
         versionCode: options.versionCode ?? 0,
         versionName: options.versionName ?? "0.0.0",
-        vendor: Platform.OS,
+        osArchitecture: "arm64",
+        osFamily: Platform.OS,
         osVersion: String(Platform.Version),
         sessionId: this.sessionId as string,
         deviceId: options.deviceId ?? "UNKNOWN",
         environment: options.environment ?? "prod",
+        tracerSdkVersion: SDK_VERSION,
+        ...getScreenResolution(),
       }),
     );
 
